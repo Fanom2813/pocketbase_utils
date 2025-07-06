@@ -4,6 +4,7 @@ import 'package:dart_style/dart_style.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:pocketbase_utils/src/schema/field.dart';
 import 'package:pocketbase_utils/src/templates/do_not_modify_by_hand.dart';
+import 'package:pocketbase_utils/src/templates/view_record.dart';
 import 'package:pocketbase_utils/src/utils/code_builder.dart';
 import 'package:recase/recase.dart';
 
@@ -80,7 +81,8 @@ final class Collection {
           superFields.addAll(authFields);
         }
       case CollectionType.view:
-        return '';
+        extend = code_builder.refer('ViewRecord', 'view_record.dart');
+        superFields.addAll(viewFields);
     }
 
     final fieldsWithoutSuperFields = fields.whereNot((f) => superFields.any((sf) => sf.name == f.name)).toList();
@@ -178,10 +180,15 @@ final class Collection {
             .add(code_builder.refer('JsonSerializable', 'package:json_annotation/json_annotation.dart').newInstance([]))
         ..fields.addAll([
           for (var field in fieldsWithoutSuperFieldsAndHidden) ...[
-            field.toCodeBuilder(
-              className,
-              shouldOverride: fieldsToOverride.any((e) => e.name == field.name),
-            ),
+            type == CollectionType.view
+                ? field.toCodeBuilderForView(
+                    className,
+                    shouldOverride: fieldsToOverride.any((e) => e.name == field.name),
+                  )
+                : field.toCodeBuilder(
+                    className,
+                    shouldOverride: fieldsToOverride.any((e) => e.name == field.name),
+                  ),
             ...field.additionalFieldOptionsAsFields(),
           ],
           for (var staticCollectionRefFieldName in ['collectionId', 'collectionName'])
@@ -206,10 +213,10 @@ final class Collection {
         ])
         ..methods.addAll([
           _toJsonMethod(className),
-          _copyWithMethod(className, allFieldsWithoutHidden),
+          _copyWithMethod(className, allFieldsWithoutHidden, type),
           _takeDiffMethod(className, allFieldsWithoutHidden),
           _propsMethod(fieldsWithoutSuperFieldsAndHidden),
-          _forCreateRequestMethod(className, allFieldsWithoutHidden),
+          if (type != CollectionType.view) _forCreateRequestMethod(className, allFieldsWithoutHidden),
         ]),
     );
 

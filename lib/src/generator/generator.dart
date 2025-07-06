@@ -8,6 +8,7 @@ import 'package:pocketbase_utils/src/templates/base_record.dart';
 import 'package:pocketbase_utils/src/templates/date_time_json_methods.dart';
 import 'package:pocketbase_utils/src/templates/empty_values.dart';
 import 'package:pocketbase_utils/src/templates/geo_point_class.dart';
+import 'package:pocketbase_utils/src/templates/view_record.dart';
 import 'package:recase/recase.dart';
 
 import '../config/pubspec_config.dart';
@@ -94,6 +95,10 @@ class Generator {
     createFileAndWrite(
       path.join(outputDirectory.path, 'auth_record.dart'),
       authRecordClassGenerator(_lineLength),
+    );
+    createFileAndWrite(
+      path.join(outputDirectory.path, 'view_record.dart'),
+      viewRecordClassGenerator(_lineLength),
     );
     createFileAndWrite(
       path.join(outputDirectory.path, 'empty_values.dart'),
